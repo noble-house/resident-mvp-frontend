@@ -48,7 +48,6 @@ if "transcript" in st.session_state:
             if response.status_code == 200:
                 result = response.json()
 
-                # Debug block
                 st.subheader("🧪 DEBUG: Raw Profile JSON")
                 st.json(result)
 
@@ -58,7 +57,9 @@ if "transcript" in st.session_state:
                     "name": opal_raw.get("full_name", ""),
                     "age": opal_raw.get("age_or_dob", ""),
                     "birthplace": opal_raw.get("birthplace", ""),
+                    "previous_residence": opal_raw.get("previous_residence", ""),
                     "career": opal_raw.get("career", ""),
+                    "military_service": bool(opal_raw.get("military_service")),
                     "military_branch": opal_raw.get("military_service", {}).get("branch", "") if opal_raw.get("military_service") else "",
                     "military_duration": opal_raw.get("military_service", {}).get("duration", "") if opal_raw.get("military_service") else "",
                     "hobbies_interests": opal_raw.get("hobbies_interests", ""),
@@ -67,6 +68,7 @@ if "transcript" in st.session_state:
                     "favorites_books": opal_raw.get("favorites", {}).get("books", "") if opal_raw.get("favorites") else "",
                     "achievements": opal_raw.get("achievements", ""),
                     "daily_routine": opal_raw.get("daily_routine", ""),
+                    "religion_beliefs": opal_raw.get("religion_beliefs", ""),
                     "important_people": opal_raw.get("important_people", ""),
                     "health_conditions": opal_raw.get("health_conditions", ""),
                     "mobility_needs": opal_raw.get("mobility_needs", ""),
@@ -80,22 +82,23 @@ if "transcript" in st.session_state:
                 st.error("❌ Profile generation failed.")
 
 # === Step 3: Editable Form UI ===
-st.markdown("---")
-st.header("✍️ Review & Edit OPAL Life Story Form")
-render_opal_form()
+if "opal_form" in st.session_state:
+    st.markdown("---")
+    st.header("✍️ Review & Edit OPAL Life Story Form")
+    render_opal_form()
 
-# === Step 4: Generate & Download PDF ===
-st.markdown("### 📥 Download Finalized PDF")
-if st.button("📩 Generate & Download OPAL Life Story PDF"):
-    with st.spinner("Generating your OPAL PDF..."):
-        pdf_bytes = generate_opal_pdf_reportlab()
-        if pdf_bytes:
-            name = st.session_state.get("opal_form", {}).get("name", "Resident")
-            st.download_button(
-                label="⬇️ Download OPAL Life Story PDF",
-                data=pdf_bytes,
-                file_name=f"{name}_OPAL_Life_Story.pdf",
-                mime="application/pdf"
-            )
-        else:
-            st.error("❌ Failed to generate the PDF.")
+    # === Step 4: Generate & Download PDF ===
+    st.markdown("### 📥 Download Finalized PDF")
+    if st.button("📩 Generate & Download OPAL Life Story PDF"):
+        with st.spinner("Generating your OPAL PDF..."):
+            pdf_bytes = generate_opal_pdf_from_form()
+            if pdf_bytes:
+                name = st.session_state.get("opal_form", {}).get("name", "Resident")
+                st.download_button(
+                    label="⬇️ Download OPAL Life Story PDF",
+                    data=pdf_bytes,
+                    file_name=f"{name}_OPAL_Life_Story.pdf",
+                    mime="application/pdf"
+                )
+            else:
+                st.error("❌ Failed to generate the PDF.")

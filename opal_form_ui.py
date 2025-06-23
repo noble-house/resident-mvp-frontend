@@ -1,6 +1,7 @@
 import streamlit as st
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
 from io import BytesIO
 
 def render_opal_form():
@@ -61,69 +62,73 @@ def generate_opal_pdf_from_form() -> bytes:
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
-    y = height - 50
+    margin = 50
+    y = height - margin
 
-    def draw_title(text):
+    def draw_section_title(title):
         nonlocal y
         c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, y, text)
-        y -= 20
+        c.drawString(margin, y, title)
+        y -= 18
 
     def draw_field(label, value):
         nonlocal y
         c.setFont("Helvetica-Bold", 11)
-        c.drawString(50, y, f"{label}:")
-        y -= 15
+        c.drawString(margin, y, f"{label}:")
+        y -= 14
         c.setFont("Helvetica", 11)
-        wrapped = c.beginText(60, y)
+        text_obj = c.beginText(margin + 10, y)
         for line in value.split("\n"):
-            wrapped.textLine(line.strip())
-            y -= 14
-        c.drawText(wrapped)
-        y -= 10
+            text_obj.textLine(line.strip())
+            y -= 13
+        c.drawText(text_obj)
+        y -= 8
 
-    draw_title("👤 Resident Information")
+        # If page overflow, create new page
+        if y < 100:
+            c.showPage()
+            y = height - margin
+
+    draw_section_title("👤 Resident Information")
     draw_field("Full Name", form.get("name", ""))
     draw_field("Age or DOB", form.get("age", ""))
     draw_field("Birthplace", form.get("birthplace", ""))
     draw_field("Previous Residence", form.get("previous_residence", ""))
     draw_field("Career", form.get("career", ""))
 
-    draw_title("🎖️ Military Service")
+    draw_section_title("🎖️ Military Service")
     if form.get("military_service"):
         draw_field("Branch", form.get("military_branch", ""))
         draw_field("Service Duration", form.get("military_duration", ""))
     else:
         draw_field("Military Service", "No")
 
-    draw_title("🎨 Interests & Preferences")
+    draw_section_title("🎨 Interests & Preferences")
     draw_field("Hobbies & Interests", form.get("hobbies_interests", ""))
     draw_field("Favorite Music", form.get("favorites_music", ""))
     draw_field("Favorite Movies", form.get("favorites_movies", ""))
     draw_field("Favorite Books", form.get("favorites_books", ""))
 
-    draw_title("🏆 Achievements & Daily Life")
+    draw_section_title("🏆 Achievements & Daily Life")
     draw_field("Achievements", form.get("achievements", ""))
     draw_field("Daily Routine", form.get("daily_routine", ""))
 
-    draw_title("🙏 Beliefs & Relationships")
+    draw_section_title("🙏 Beliefs & Relationships")
     draw_field("Religion or Beliefs", form.get("religion_beliefs", ""))
     draw_field("Important People in Life", form.get("important_people", ""))
 
-    draw_title("🩺 Health & Accessibility")
+    draw_section_title("🩺 Health & Accessibility")
     draw_field("Health Conditions / Allergies", form.get("health_conditions", ""))
     draw_field("Mobility Needs", form.get("mobility_needs", ""))
     draw_field("Communication Style", form.get("communication", ""))
 
-    draw_title("💬 Personality")
+    draw_section_title("💬 Personality")
     draw_field("Likes / Dislikes", form.get("likes_dislikes", ""))
 
-    draw_title("📝 AI-Generated Life Summary")
+    draw_section_title("📝 AI-Generated Life Summary")
     draw_field("Summary / Notes", form.get("notes", ""))
 
     c.showPage()
     c.save()
-
-    pdf_bytes = buffer.getvalue()
-    buffer.close()
-    return pdf_bytes
+    buffer.seek(0)
+    return buffer.getvalue()
