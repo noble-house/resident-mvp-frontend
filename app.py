@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-from opal_form_ui import render_opal_form, generate_opal_pdf_reportlab
+from opal_form_ui import render_opal_form, generate_opal_pdf_from_form
 
 # === Config ===
 BACKEND_URL = "https://resident-mvp-backend-production.up.railway.app"
