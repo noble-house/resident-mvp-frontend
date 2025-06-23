@@ -1,8 +1,8 @@
 import streamlit as st
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch
 from io import BytesIO
+
 
 def render_opal_form():
     """Render OPAL Life Story Form UI"""
@@ -58,7 +58,6 @@ def render_opal_form():
 def generate_opal_pdf_from_form() -> bytes:
     """Generate a clean formatted OPAL Life Story PDF using reportlab"""
     form = st.session_state.get("opal_form", {})
-
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -73,6 +72,7 @@ def generate_opal_pdf_from_form() -> bytes:
 
     def draw_field(label, value):
         nonlocal y
+        value = str(value or "")  # Safely cast None to empty string
         c.setFont("Helvetica-Bold", 11)
         c.drawString(margin, y, f"{label}:")
         y -= 14
@@ -84,49 +84,48 @@ def generate_opal_pdf_from_form() -> bytes:
         c.drawText(text_obj)
         y -= 8
 
-        # If page overflow, create new page
         if y < 100:
             c.showPage()
             y = height - margin
 
     draw_section_title("👤 Resident Information")
-    draw_field("Full Name", form.get("name", ""))
-    draw_field("Age or DOB", form.get("age", ""))
-    draw_field("Birthplace", form.get("birthplace", ""))
-    draw_field("Previous Residence", form.get("previous_residence", ""))
-    draw_field("Career", form.get("career", ""))
+    draw_field("Full Name", form.get("name"))
+    draw_field("Age or DOB", form.get("age"))
+    draw_field("Birthplace", form.get("birthplace"))
+    draw_field("Previous Residence", form.get("previous_residence"))
+    draw_field("Career", form.get("career"))
 
     draw_section_title("🎖️ Military Service")
     if form.get("military_service"):
-        draw_field("Branch", form.get("military_branch", ""))
-        draw_field("Service Duration", form.get("military_duration", ""))
+        draw_field("Branch", form.get("military_branch"))
+        draw_field("Service Duration", form.get("military_duration"))
     else:
         draw_field("Military Service", "No")
 
     draw_section_title("🎨 Interests & Preferences")
-    draw_field("Hobbies & Interests", form.get("hobbies_interests", ""))
-    draw_field("Favorite Music", form.get("favorites_music", ""))
-    draw_field("Favorite Movies", form.get("favorites_movies", ""))
-    draw_field("Favorite Books", form.get("favorites_books", ""))
+    draw_field("Hobbies & Interests", form.get("hobbies_interests"))
+    draw_field("Favorite Music", form.get("favorites_music"))
+    draw_field("Favorite Movies", form.get("favorites_movies"))
+    draw_field("Favorite Books", form.get("favorites_books"))
 
     draw_section_title("🏆 Achievements & Daily Life")
-    draw_field("Achievements", form.get("achievements", ""))
-    draw_field("Daily Routine", form.get("daily_routine", ""))
+    draw_field("Achievements", form.get("achievements"))
+    draw_field("Daily Routine", form.get("daily_routine"))
 
     draw_section_title("🙏 Beliefs & Relationships")
-    draw_field("Religion or Beliefs", form.get("religion_beliefs", ""))
-    draw_field("Important People in Life", form.get("important_people", ""))
+    draw_field("Religion or Beliefs", form.get("religion_beliefs"))
+    draw_field("Important People in Life", form.get("important_people"))
 
     draw_section_title("🩺 Health & Accessibility")
-    draw_field("Health Conditions / Allergies", form.get("health_conditions", ""))
-    draw_field("Mobility Needs", form.get("mobility_needs", ""))
-    draw_field("Communication Style", form.get("communication", ""))
+    draw_field("Health Conditions / Allergies", form.get("health_conditions"))
+    draw_field("Mobility Needs", form.get("mobility_needs"))
+    draw_field("Communication Style", form.get("communication"))
 
     draw_section_title("💬 Personality")
-    draw_field("Likes / Dislikes", form.get("likes_dislikes", ""))
+    draw_field("Likes / Dislikes", form.get("likes_dislikes"))
 
     draw_section_title("📝 AI-Generated Life Summary")
-    draw_field("Summary / Notes", form.get("notes", ""))
+    draw_field("Summary / Notes", form.get("notes"))
 
     c.showPage()
     c.save()

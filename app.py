@@ -53,6 +53,12 @@ if "transcript" in st.session_state:
 
                 opal_raw = result.get("profile", {}).get("OPAL Life Story Fields", {})
 
+                # Safe extraction with fallbacks
+                def safe_get(obj, path, default=""):
+                    for key in path:
+                        obj = obj.get(key, {}) if isinstance(obj, dict) else {}
+                    return obj if isinstance(obj, str) else default
+
                 st.session_state.opal_form = {
                     "name": opal_raw.get("full_name", ""),
                     "age": opal_raw.get("age_or_dob", ""),
