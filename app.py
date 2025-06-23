@@ -47,25 +47,25 @@ if "transcript" in st.session_state:
 
             if response.status_code == 200:
                 result = response.json()
+
+                # Debug block
                 st.subheader("🧪 DEBUG: Raw Profile JSON")
                 st.json(result)
 
-                profile = result.get("profile", {})
+                opal_raw = result.get("profile", {}).get("OPAL Life Story Fields", {})
 
-                # Save entire form dict to session_state
+                # Save structured form data into session_state
                 st.session_state.opal_form = {
-                    "name": profile.get("name", ""),
-                    "age": profile.get("age", ""),
-                    "previous_location": profile.get("previous_location", ""),
-                    "morning_routine": profile.get("morning_routine", ""),
-                    "evening_routine": profile.get("evening_routine", ""),
-                    "interests": (
-                        ", ".join(profile["interests"]) if isinstance(profile.get("interests"), list) else profile.get("interests", "")
-                    ),
-                    "hobbies": profile.get("hobbies", ""),
-                    "life_events": profile.get("life_events", ""),
-                    "family_history": profile.get("family_history", ""),
-                    "community_roles": profile.get("community_roles", "")
+                    "name": opal_raw.get("full_name", ""),
+                    "age": opal_raw.get("age_or_dob", ""),
+                    "previous_location": opal_raw.get("previous_residence", ""),
+                    "morning_routine": opal_raw.get("daily_routine", ""),
+                    "evening_routine": opal_raw.get("likes_dislikes", ""),
+                    "interests": opal_raw.get("hobbies_interests", ""),
+                    "hobbies": opal_raw.get("hobbies_interests", ""),
+                    "life_events": opal_raw.get("achievements", ""),
+                    "family_history": opal_raw.get("important_people", ""),
+                    "community_roles": opal_raw.get("notes", "")
                 }
 
                 st.success("✅ Profile generated and loaded into OPAL Form")
