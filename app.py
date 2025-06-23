@@ -30,8 +30,7 @@ class AudioProcessor(AudioProcessorBase):
 ctx = webrtc_streamer(
     key="record_audio",
     mode="sendonly",
-    in_audio=True,
-    in_video=False,
+    media_stream_constraints={"audio": True, "video": False},
     audio_processor_factory=AudioProcessor,
 )
 
