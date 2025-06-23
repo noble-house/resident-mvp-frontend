@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, ClientSettings
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
 import av
 import tempfile
 import os
@@ -20,17 +20,19 @@ uploaded_file = st.file_uploader("Upload (.mp3, .wav, .m4a)", type=["mp3", "wav"
 st.subheader("🎙️ Or Record Interview Live")
 
 class AudioProcessor(AudioProcessorBase):
+    def __init__(self) -> None:
+        self.buffer = b""
+
     def recv(self, frame: av.AudioFrame) -> av.AudioFrame:
+        self.buffer += frame.to_ndarray().tobytes()
         return frame
 
 ctx = webrtc_streamer(
     key="record_audio",
-    client_settings=ClientSettings(
-        media_stream_constraints={"audio": True, "video": False},
-        rtc_configuration={}
-    ),
+    mode="sendonly",
+    in_audio=True,
+    in_video=False,
     audio_processor_factory=AudioProcessor,
-    media_stream_constraints={"audio": True},
 )
 
 # === Button: Transcribe ===
@@ -39,15 +41,11 @@ if st.button("Transcribe Interview"):
         st.info("Using uploaded file for transcription...")
         file_data = uploaded_file.read()
         filename = uploaded_file.name
-    elif ctx.audio_receiver:
+    elif ctx and ctx.state.playing and ctx.audio_processor and ctx.audio_processor.buffer:
         st.info("Using recorded audio...")
-        audio_frames = ctx.audio_receiver.get_frames(timeout=1)
-        if not audio_frames:
-            st.error("No audio captured. Try again.")
-            st.stop()
         wav_path = os.path.join(tempfile.gettempdir(), "recorded_audio.wav")
         with open(wav_path, "wb") as f:
-            f.write(audio_frames[0].to_ndarray().tobytes())
+            f.write(ctx.audio_processor.buffer)
         file_data = open(wav_path, "rb").read()
         filename = "recorded_audio.wav"
     else:
