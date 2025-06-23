@@ -3,11 +3,13 @@ import io
 from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen import canvas
 
-def render_opal_form():
+def render_opal_form(opal_data: dict):
+    updated_data = {}
     with st.expander("📝 OPAL Life Story Form"):
-        for key, value in st.session_state.opal_form.items():
+        for key, value in opal_data.items():
             new_value = st.text_area(key.replace("_", " ").capitalize(), value)
-            st.session_state.opal_form[key] = new_value
+            updated_data[key] = new_value
+    return updated_data
 
 def generate_opal_pdf_from_form():
     buffer = io.BytesIO()

@@ -3,15 +3,15 @@ import io
 from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen import canvas
 
-def render_primefit_form(primefit_data, notes):
+def render_primefit_form(primefit_data: dict, notes: str):
+    updated_data = {}
     with st.expander("📝 PrimeFit Wellness Form"):
         for key, value in primefit_data.items():
-            if isinstance(value, list):
-                new_value = st.text_area(key.replace("_", " ").capitalize(), ", ".join(value))
-                primefit_data[key] = [v.strip() for v in new_value.split(",")]
-            else:
-                primefit_data[key] = st.text_area(key.replace("_", " ").capitalize(), value)
-        primefit_data["notes"] = st.text_area("Notes", notes)
+            label = key.replace("_", " ").capitalize()
+            new_value = st.text_area(label, str(value))
+            updated_data[key] = new_value
+        updated_data["notes"] = st.text_area("Notes", notes)
+    return updated_data
 
 def generate_primefit_pdf_from_form():
     buffer = io.BytesIO()
@@ -26,10 +26,7 @@ def generate_primefit_pdf_from_form():
 
     for key, value in st.session_state.primefit_form.items():
         label = key.replace("_", " ").capitalize()
-        if isinstance(value, list):
-            text = f"{label}: {', '.join(value)}"
-        else:
-            text = f"{label}: {value}"
+        text = f"{label}: {value}"
         for line in split_text(text, 80):
             c.drawString(50, y, line)
             y -= 15

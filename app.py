@@ -64,7 +64,7 @@ if "profile_data" in st.session_state:
         st.subheader("🧪 DEBUG: Raw OPAL JSON")
         st.json(profile.get("OPAL Life Story Fields", {}))
 
-        st.session_state.opal_form = {
+        opal_form_data = {
             "name": profile.get("full_name", ""),
             "age": profile.get("age_or_dob", ""),
             "birthplace": profile.get("birthplace", ""),
@@ -88,7 +88,8 @@ if "profile_data" in st.session_state:
             "notes": profile.get("notes", "")
         }
 
-        render_opal_form()
+        updated_opal_form = render_opal_form(opal_form_data)
+        st.session_state.opal_form = updated_opal_form
 
         st.markdown("### 📥 Download OPAL Life Story PDF")
         if st.button("📩 Generate & Download OPAL PDF"):
@@ -110,7 +111,7 @@ if "profile_data" in st.session_state:
         st.subheader("🧪 DEBUG: Raw PrimeFit JSON")
         st.json(profile)
 
-        st.session_state.primefit_form = {
+        primefit_form_data = {
             "resident_name": profile.get("resident_name", profile.get("full_name", "")),
             "wellness_goals": profile.get("wellness_goals", []),
             "activity_level": profile.get("activity_level", ""),
@@ -124,7 +125,8 @@ if "profile_data" in st.session_state:
             "exercise_barriers": profile.get("exercise_barriers", "")
         }
 
-        render_primefit_form(st.session_state.primefit_form, profile.get("notes", ""))
+        updated_primefit_form = render_primefit_form(primefit_form_data, profile.get("notes", ""))
+        st.session_state.primefit_form = updated_primefit_form
 
         st.markdown("### 📥 Download PrimeFit Wellness PDF")
         if st.button("📩 Generate & Download PrimeFit PDF"):
