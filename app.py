@@ -54,7 +54,9 @@ if "transcript" in st.session_state:
 
 # === Step 3: Render Forms in Tabs ===
 if "profile_data" in st.session_state:
-    profile = st.session_state.profile_data.get("profile", {})
+    full_profile = st.session_state.profile_data.get("profile", {})
+    opal_data = full_profile.get("OPAL Life Story Fields", {})
+    primefit_data = full_profile.get("PrimeFit Wellness Profile Fields", {})
 
     tab1, tab2 = st.tabs(["🧓 OPAL Life Story", "🏃 PrimeFit Wellness"])
 
@@ -62,30 +64,30 @@ if "profile_data" in st.session_state:
     with tab1:
         st.header("✍️ Review & Edit OPAL Life Story Form")
         st.subheader("🧪 DEBUG: Raw OPAL JSON")
-        st.json(profile.get("OPAL Life Story Fields", {}))
+        st.json(opal_data)
 
         opal_form_data = {
-            "name": profile.get("full_name", ""),
-            "age": profile.get("age_or_dob", ""),
-            "birthplace": profile.get("birthplace", ""),
-            "previous_residence": profile.get("previous_residence", ""),
-            "career": profile.get("career", ""),
-            "military_service": profile.get("military_service", {}).get("has_served", False),
-            "military_branch": profile.get("military_service", {}).get("branch", ""),
-            "military_duration": profile.get("military_service", {}).get("duration", ""),
-            "hobbies_interests": profile.get("hobbies_interests", ""),
-            "favorites_music": profile.get("favorites", {}).get("music", ""),
-            "favorites_movies": profile.get("favorites", {}).get("movies", ""),
-            "favorites_books": profile.get("favorites", {}).get("books", ""),
-            "achievements": profile.get("achievements", ""),
-            "daily_routine": profile.get("daily_routine", ""),
-            "religion_beliefs": profile.get("religion_beliefs", ""),
-            "important_people": profile.get("important_people", ""),
-            "health_conditions": profile.get("health_conditions", ""),
-            "mobility_needs": profile.get("mobility_needs", ""),
-            "communication": profile.get("communication", ""),
-            "likes_dislikes": profile.get("likes_dislikes", ""),
-            "notes": profile.get("notes", "")
+            "name": opal_data.get("full_name", ""),
+            "age": opal_data.get("age_or_dob", ""),
+            "birthplace": opal_data.get("birthplace", ""),
+            "previous_residence": opal_data.get("previous_residence", ""),
+            "career": opal_data.get("career", ""),
+            "military_service": opal_data.get("military_service", {}).get("has_served", False),
+            "military_branch": opal_data.get("military_service", {}).get("branch", ""),
+            "military_duration": opal_data.get("military_service", {}).get("duration", ""),
+            "hobbies_interests": opal_data.get("hobbies_interests", ""),
+            "favorites_music": opal_data.get("favorites", {}).get("music", ""),
+            "favorites_movies": opal_data.get("favorites", {}).get("movies", ""),
+            "favorites_books": opal_data.get("favorites", {}).get("books", ""),
+            "achievements": opal_data.get("achievements", ""),
+            "daily_routine": opal_data.get("daily_routine", ""),
+            "religion_beliefs": opal_data.get("religion_beliefs", ""),
+            "important_people": opal_data.get("important_people", ""),
+            "health_conditions": opal_data.get("health_conditions", ""),
+            "mobility_needs": opal_data.get("mobility_needs", ""),
+            "communication": opal_data.get("communication", ""),
+            "likes_dislikes": opal_data.get("likes_dislikes", ""),
+            "notes": opal_data.get("notes", "")
         }
 
         updated_opal_form = render_opal_form(opal_form_data)
@@ -109,23 +111,23 @@ if "profile_data" in st.session_state:
     with tab2:
         st.header("✍️ Review & Edit PrimeFit Wellness Profile")
         st.subheader("🧪 DEBUG: Raw PrimeFit JSON")
-        st.json(profile)
+        st.json(primefit_data)
 
         primefit_form_data = {
-            "resident_name": profile.get("resident_name", profile.get("full_name", "")),
-            "wellness_goals": profile.get("wellness_goals", []),
-            "activity_level": profile.get("activity_level", ""),
-            "preferred_activities": profile.get("preferred_activities", []),
-            "mobility_limitations": profile.get("mobility_limitations", ""),
-            "medical_conditions": profile.get("medical_conditions", ""),
-            "activity_time_preference": profile.get("activity_time_preference", ""),
-            "group_or_individual": profile.get("group_or_individual", ""),
-            "injuries_or_surgeries": profile.get("injuries_or_surgeries", ""),
-            "activity_history": profile.get("activity_history", ""),
-            "exercise_barriers": profile.get("exercise_barriers", "")
+            "resident_name": primefit_data.get("resident_name", opal_data.get("full_name", "")),
+            "wellness_goals": primefit_data.get("wellness_goals", []),
+            "activity_level": primefit_data.get("activity_level", ""),
+            "preferred_activities": primefit_data.get("preferred_activities", []),
+            "mobility_limitations": primefit_data.get("mobility_limitations", ""),
+            "medical_conditions": primefit_data.get("medical_conditions", ""),
+            "activity_time_preference": primefit_data.get("activity_time_preference", ""),
+            "group_or_individual": primefit_data.get("group_or_individual", ""),
+            "injuries_or_surgeries": primefit_data.get("injuries_or_surgeries", ""),
+            "activity_history": primefit_data.get("activity_history", ""),
+            "exercise_barriers": primefit_data.get("exercise_barriers", "")
         }
 
-        updated_primefit_form = render_primefit_form(primefit_form_data, profile.get("notes", ""))
+        updated_primefit_form = render_primefit_form(primefit_form_data, opal_data.get("notes", ""))
         st.session_state.primefit_form = updated_primefit_form
 
         st.markdown("### 📥 Download PrimeFit Wellness PDF")
