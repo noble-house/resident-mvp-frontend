@@ -31,6 +31,9 @@ ctx = webrtc_streamer(
     key="record_audio",
     mode=WebRtcMode.SENDONLY,
     media_stream_constraints={"audio": True, "video": False},
+    rtc_configuration={
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+    },
     audio_processor_factory=AudioProcessor,
 )
 
