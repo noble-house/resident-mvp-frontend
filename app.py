@@ -46,21 +46,27 @@ if "transcript" in st.session_state:
             response = requests.post(f"{BACKEND_URL}/generate-profile", json=payload)
 
             if response.status_code == 200:
-                profile = response.json().get("profile", {})
+                result = response.json()
+                st.subheader("🧪 DEBUG: Raw Profile JSON")
+                st.json(result)
 
-                # Set individual session state keys
-                st.session_state["opal_form.name"] = profile.get("name", "")
-                st.session_state["opal_form.age"] = profile.get("age", "")
-                st.session_state["opal_form.previous_location"] = profile.get("previous_location", "")
-                st.session_state["opal_form.morning_routine"] = profile.get("morning_routine", "")
-                st.session_state["opal_form.evening_routine"] = profile.get("evening_routine", "")
-                st.session_state["opal_form.interests"] = (
-                    ", ".join(profile.get("interests", [])) if isinstance(profile.get("interests"), list) else profile.get("interests", "")
-                )
-                st.session_state["opal_form.hobbies"] = profile.get("hobbies", "")
-                st.session_state["opal_form.life_events"] = profile.get("life_events", "")
-                st.session_state["opal_form.family_history"] = profile.get("family_history", "")
-                st.session_state["opal_form.community_roles"] = profile.get("community_roles", "")
+                profile = result.get("profile", {})
+
+                # Save entire form dict to session_state
+                st.session_state.opal_form = {
+                    "name": profile.get("name", ""),
+                    "age": profile.get("age", ""),
+                    "previous_location": profile.get("previous_location", ""),
+                    "morning_routine": profile.get("morning_routine", ""),
+                    "evening_routine": profile.get("evening_routine", ""),
+                    "interests": (
+                        ", ".join(profile["interests"]) if isinstance(profile.get("interests"), list) else profile.get("interests", "")
+                    ),
+                    "hobbies": profile.get("hobbies", ""),
+                    "life_events": profile.get("life_events", ""),
+                    "family_history": profile.get("family_history", ""),
+                    "community_roles": profile.get("community_roles", "")
+                }
 
                 st.success("✅ Profile generated and loaded into OPAL Form")
             else:
@@ -77,7 +83,7 @@ if st.button("📩 Generate & Download OPAL Life Story PDF"):
     with st.spinner("Generating your OPAL PDF..."):
         pdf_bytes = generate_opal_pdf_from_form()
         if pdf_bytes:
-            name = st.session_state.get("opal_form.name", "Resident")
+            name = st.session_state.get("opal_form", {}).get("name", "Resident")
             st.download_button(
                 label="⬇️ Download OPAL Life Story PDF",
                 data=pdf_bytes,
