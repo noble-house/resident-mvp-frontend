@@ -47,8 +47,7 @@ if "transcript" in st.session_state:
             response = requests.post(f"{BACKEND_URL}/generate-profile", json=payload)
 
             if response.status_code == 200:
-                result = response.json()
-                st.session_state.profile_data = result
+                st.session_state.profile_data = response.json()
                 st.success("✅ Profile generated and forms loaded.")
             else:
                 st.error("❌ Profile generation failed.")
@@ -65,7 +64,7 @@ if "profile_data" in st.session_state:
         st.subheader("🧪 DEBUG: Raw OPAL JSON")
         st.json(profile.get("OPAL Life Story Fields", {}))
 
-        opal_data = {
+        st.session_state.opal_form = {
             "name": profile.get("full_name", ""),
             "age": profile.get("age_or_dob", ""),
             "birthplace": profile.get("birthplace", ""),
@@ -89,7 +88,6 @@ if "profile_data" in st.session_state:
             "notes": profile.get("notes", "")
         }
 
-        st.session_state.opal_form = opal_data
         render_opal_form()
 
         st.markdown("### 📥 Download OPAL Life Story PDF")
@@ -97,11 +95,10 @@ if "profile_data" in st.session_state:
             with st.spinner("Generating OPAL PDF..."):
                 pdf_bytes = generate_opal_pdf_from_form()
                 if pdf_bytes:
-                    name = opal_data.get("name", "Resident")
                     st.download_button(
                         label="⬇️ Download OPAL Life Story PDF",
                         data=pdf_bytes,
-                        file_name=f"{name}_OPAL_Life_Story.pdf",
+                        file_name=f"{st.session_state.opal_form['name']}_OPAL_Life_Story.pdf",
                         mime="application/pdf"
                     )
                 else:
@@ -113,7 +110,7 @@ if "profile_data" in st.session_state:
         st.subheader("🧪 DEBUG: Raw PrimeFit JSON")
         st.json(profile)
 
-        primefit_data = {
+        st.session_state.primefit_form = {
             "resident_name": profile.get("resident_name", profile.get("full_name", "")),
             "wellness_goals": profile.get("wellness_goals", []),
             "activity_level": profile.get("activity_level", ""),
@@ -127,19 +124,17 @@ if "profile_data" in st.session_state:
             "exercise_barriers": profile.get("exercise_barriers", "")
         }
 
-        st.session_state.primefit_form = primefit_data
-        render_primefit_form(primefit_data, profile.get("notes", ""))
+        render_primefit_form(st.session_state.primefit_form, profile.get("notes", ""))
 
         st.markdown("### 📥 Download PrimeFit Wellness PDF")
         if st.button("📩 Generate & Download PrimeFit PDF"):
             with st.spinner("Generating PrimeFit PDF..."):
                 pdf_bytes = generate_primefit_pdf_from_form()
                 if pdf_bytes:
-                    name = primefit_data.get("resident_name", "Resident")
                     st.download_button(
                         label="⬇️ Download PrimeFit Profile PDF",
                         data=pdf_bytes,
-                        file_name=f"{name}_PrimeFit_Profile.pdf",
+                        file_name=f"{st.session_state.primefit_form['resident_name']}_PrimeFit_Profile.pdf",
                         mime="application/pdf"
                     )
                 else:
