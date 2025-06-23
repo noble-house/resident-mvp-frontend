@@ -1,5 +1,4 @@
 import streamlit as st
-import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
@@ -108,8 +107,8 @@ def generate_opal_pdf_from_form() -> bytes:
     draw_field("Daily Routine", form.get("daily_routine", ""))
 
     draw_title("🙏 Beliefs & Relationships")
-    draw_field("Religion / Beliefs", form.get("religion_beliefs", ""))
-    draw_field("Important People", form.get("important_people", ""))
+    draw_field("Religion or Beliefs", form.get("religion_beliefs", ""))
+    draw_field("Important People in Life", form.get("important_people", ""))
 
     draw_title("🩺 Health & Accessibility")
     draw_field("Health Conditions / Allergies", form.get("health_conditions", ""))
@@ -117,10 +116,10 @@ def generate_opal_pdf_from_form() -> bytes:
     draw_field("Communication Style", form.get("communication", ""))
 
     draw_title("💬 Personality")
-    draw_field("Likes & Dislikes", form.get("likes_dislikes", ""))
+    draw_field("Likes / Dislikes", form.get("likes_dislikes", ""))
 
     draw_title("📝 AI-Generated Life Summary")
-    draw_field("Notes", form.get("notes", ""))
+    draw_field("Summary / Notes", form.get("notes", ""))
 
     c.showPage()
     c.save()
