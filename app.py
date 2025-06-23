@@ -54,18 +54,22 @@ if "transcript" in st.session_state:
 
                 opal_raw = result.get("profile", {}).get("OPAL Life Story Fields", {})
 
-                # Save structured form data into session_state
                 st.session_state.opal_form = {
                     "name": opal_raw.get("full_name", ""),
                     "age": opal_raw.get("age_or_dob", ""),
-                    "previous_location": opal_raw.get("previous_residence", ""),
-                    "morning_routine": opal_raw.get("daily_routine", ""),
-                    "evening_routine": opal_raw.get("likes_dislikes", ""),
-                    "interests": opal_raw.get("hobbies_interests", ""),
-                    "hobbies": opal_raw.get("hobbies_interests", ""),
-                    "life_events": opal_raw.get("achievements", ""),
-                    "family_history": opal_raw.get("important_people", ""),
-                    "community_roles": opal_raw.get("notes", "")
+                    "birthplace": opal_raw.get("birthplace", ""),
+                    "career": opal_raw.get("career", ""),
+                    "military_branch": opal_raw.get("military_service", {}).get("branch", "") if opal_raw.get("military_service") else "",
+                    "hobbies_interests": opal_raw.get("hobbies_interests", ""),
+                    "favorites_music": opal_raw.get("favorites", {}).get("music", "") if opal_raw.get("favorites") else "",
+                    "achievements": opal_raw.get("achievements", ""),
+                    "daily_routine": opal_raw.get("daily_routine", ""),
+                    "important_people": opal_raw.get("important_people", ""),
+                    "health_conditions": opal_raw.get("health_conditions", ""),
+                    "mobility_needs": opal_raw.get("mobility_needs", ""),
+                    "communication": opal_raw.get("communication", ""),
+                    "likes_dislikes": opal_raw.get("likes_dislikes", ""),
+                    "notes": opal_raw.get("notes", "")
                 }
 
                 st.success("✅ Profile generated and loaded into OPAL Form")
