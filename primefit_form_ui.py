@@ -13,6 +13,10 @@ def render_primefit_form(data, notes=""):
 
         updated_data["notes"] = st.text_area("Notes", notes, key="primefit_notes")
 
+    # ✅ Ensure session state key exists before updating
+    if "primefit_form" not in st.session_state:
+        st.session_state.primefit_form = {}
+
     st.session_state.primefit_form.update(updated_data)
     return updated_data
 
