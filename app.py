@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-from opal_form_ui import render_opal_form, generate_opal_pdf_from_form
+from opal_form_ui import render_opal_form, generate_opal_pdf_reportlab
 
 # === Config ===
 BACKEND_URL = "https://resident-mvp-backend-production.up.railway.app"
@@ -60,8 +60,11 @@ if "transcript" in st.session_state:
                     "birthplace": opal_raw.get("birthplace", ""),
                     "career": opal_raw.get("career", ""),
                     "military_branch": opal_raw.get("military_service", {}).get("branch", "") if opal_raw.get("military_service") else "",
+                    "military_duration": opal_raw.get("military_service", {}).get("duration", "") if opal_raw.get("military_service") else "",
                     "hobbies_interests": opal_raw.get("hobbies_interests", ""),
                     "favorites_music": opal_raw.get("favorites", {}).get("music", "") if opal_raw.get("favorites") else "",
+                    "favorites_movies": opal_raw.get("favorites", {}).get("movies", "") if opal_raw.get("favorites") else "",
+                    "favorites_books": opal_raw.get("favorites", {}).get("books", "") if opal_raw.get("favorites") else "",
                     "achievements": opal_raw.get("achievements", ""),
                     "daily_routine": opal_raw.get("daily_routine", ""),
                     "important_people": opal_raw.get("important_people", ""),
@@ -85,7 +88,7 @@ render_opal_form()
 st.markdown("### 📥 Download Finalized PDF")
 if st.button("📩 Generate & Download OPAL Life Story PDF"):
     with st.spinner("Generating your OPAL PDF..."):
-        pdf_bytes = generate_opal_pdf_from_form()
+        pdf_bytes = generate_opal_pdf_reportlab()
         if pdf_bytes:
             name = st.session_state.get("opal_form", {}).get("name", "Resident")
             st.download_button(
@@ -95,4 +98,4 @@ if st.button("📩 Generate & Download OPAL Life Story PDF"):
                 mime="application/pdf"
             )
         else:
-            st.error("❌ Failed to generate the PDF. Template might be missing.")
+            st.error("❌ Failed to generate the PDF.")

@@ -1,90 +1,130 @@
 import streamlit as st
-import fitz  # PyMuPDF
 import os
-import openai
-
-TEMPLATE_PATH = os.path.join("templates", "OPAL Life Story Brochure.pdf")
-
-# Field positions (coordinates in PDF)
-FIELD_COORDINATES = {
-    "name": (100, 100),
-    "age": (100, 120),
-    "birthplace": (100, 140),
-    "career": (100, 160),
-    "military_branch": (100, 180),
-    "hobbies_interests": (100, 200),
-    "favorites_music": (100, 220),
-    "achievements": (100, 240),
-    "daily_routine": (100, 260),
-    "important_people": (100, 280),
-    "health_conditions": (100, 300),
-    "mobility_needs": (100, 320),
-    "communication": (100, 340),
-    "likes_dislikes": (100, 360),
-    "notes": (100, 380)
-}
-
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
 
 def render_opal_form():
-    """Render OPAL form with all available fields"""
+    """Render OPAL Life Story Form UI"""
     if "opal_form" not in st.session_state:
         st.session_state.opal_form = {}
 
     form = st.session_state.opal_form
 
+    st.subheader("👤 Resident Information")
     form["name"] = st.text_input("Full Name", value=form.get("name", ""))
-    form["age"] = st.text_input("Age / DOB", value=form.get("age", ""))
+    form["age"] = st.text_input("Age or DOB", value=form.get("age", ""))
     form["birthplace"] = st.text_input("Birthplace", value=form.get("birthplace", ""))
+    form["previous_residence"] = st.text_input("Previous Residence", value=form.get("previous_residence", ""))
     form["career"] = st.text_input("Career", value=form.get("career", ""))
-    form["military_branch"] = st.text_input("Military Service (Branch)", value=form.get("military_branch", ""))
-    form["hobbies_interests"] = st.text_area("Hobbies & Interests", value=form.get("hobbies_interests", ""), height=80)
+
+    st.subheader("🎖️ Military Service")
+    form["military_service"] = st.checkbox("Has Served in Military", value=form.get("military_service", False))
+    if form["military_service"]:
+        form["military_branch"] = st.text_input("Branch", value=form.get("military_branch", ""))
+        form["military_duration"] = st.text_input("Service Duration", value=form.get("military_duration", ""))
+    else:
+        form["military_branch"] = ""
+        form["military_duration"] = ""
+
+    st.subheader("🎨 Interests & Preferences")
+    form["hobbies_interests"] = st.text_area("Hobbies & Interests", value=form.get("hobbies_interests", ""))
     form["favorites_music"] = st.text_input("Favorite Music", value=form.get("favorites_music", ""))
-    form["achievements"] = st.text_area("Major Achievements", value=form.get("achievements", ""), height=80)
-    form["daily_routine"] = st.text_area("Daily Routine", value=form.get("daily_routine", ""), height=80)
-    form["important_people"] = st.text_area("Important People / Family", value=form.get("important_people", ""), height=80)
-    form["health_conditions"] = st.text_area("Health Conditions / Dietary Notes", value=form.get("health_conditions", ""), height=80)
+    form["favorites_movies"] = st.text_input("Favorite Movies", value=form.get("favorites_movies", ""))
+    form["favorites_books"] = st.text_input("Favorite Books", value=form.get("favorites_books", ""))
+
+    st.subheader("🏆 Achievements & Daily Life")
+    form["achievements"] = st.text_area("Achievements", value=form.get("achievements", ""))
+    form["daily_routine"] = st.text_area("Daily Routine", value=form.get("daily_routine", ""))
+
+    st.subheader("🙏 Beliefs & Relationships")
+    form["religion_beliefs"] = st.text_area("Religion or Beliefs", value=form.get("religion_beliefs", ""))
+    form["important_people"] = st.text_area("Important People in Life", value=form.get("important_people", ""))
+
+    st.subheader("🩺 Health & Accessibility")
+    form["health_conditions"] = st.text_area("Health Conditions / Allergies", value=form.get("health_conditions", ""))
     form["mobility_needs"] = st.text_input("Mobility Needs", value=form.get("mobility_needs", ""))
     form["communication"] = st.text_input("Communication Style / Notes", value=form.get("communication", ""))
-    form["likes_dislikes"] = st.text_area("Likes / Dislikes", value=form.get("likes_dislikes", ""), height=80)
 
-    # Generate or allow editing notes
-    if not form.get("notes"):
-        full_summary_prompt = "Summarize the resident’s life story based on the following information:\n\n"
-        for k, v in form.items():
-            if k != "notes" and v:
-                full_summary_prompt += f"{k.replace('_', ' ').title()}: {v}\n"
-        with st.spinner("Generating life story summary..."):
-            try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": full_summary_prompt}]
-                )
-                summary = response.choices[0].message["content"]
-                form["notes"] = summary.strip()
-            except Exception as e:
-                st.warning(f"Could not generate summary: {e}")
-                form["notes"] = ""
+    st.subheader("💬 Personality")
+    form["likes_dislikes"] = st.text_area("Likes / Dislikes", value=form.get("likes_dislikes", ""))
 
-    form["notes"] = st.text_area("Life Story Summary (AI-generated, editable)", value=form.get("notes", ""), height=120)
+    st.subheader("📝 AI-Generated Notes / Life Summary")
+    form["notes"] = st.text_area("Summary / Notes", value=form.get("notes", ""), height=120)
 
     st.session_state.opal_form = form
 
 
 def generate_opal_pdf_from_form() -> bytes:
-    """Generate OPAL PDF from form"""
-    if not os.path.exists(TEMPLATE_PATH):
-        st.error("❌ Template not found")
-        return None
-
-    doc = fitz.open(TEMPLATE_PATH)
-    page = doc[0]
-
+    """Generate a clean formatted OPAL Life Story PDF using reportlab"""
     form = st.session_state.get("opal_form", {})
-    for field, coords in FIELD_COORDINATES.items():
-        value = form.get(field, "")
-        if value:
-            page.insert_text(coords, str(value), fontsize=11, fontname="helv", fill=(0, 0, 0))
 
-    pdf_bytes = doc.write()
-    doc.close()
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    y = height - 50
+
+    def draw_title(text):
+        nonlocal y
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(50, y, text)
+        y -= 20
+
+    def draw_field(label, value):
+        nonlocal y
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(50, y, f"{label}:")
+        y -= 15
+        c.setFont("Helvetica", 11)
+        wrapped = c.beginText(60, y)
+        for line in value.split("\n"):
+            wrapped.textLine(line.strip())
+            y -= 14
+        c.drawText(wrapped)
+        y -= 10
+
+    draw_title("👤 Resident Information")
+    draw_field("Full Name", form.get("name", ""))
+    draw_field("Age or DOB", form.get("age", ""))
+    draw_field("Birthplace", form.get("birthplace", ""))
+    draw_field("Previous Residence", form.get("previous_residence", ""))
+    draw_field("Career", form.get("career", ""))
+
+    draw_title("🎖️ Military Service")
+    if form.get("military_service"):
+        draw_field("Branch", form.get("military_branch", ""))
+        draw_field("Service Duration", form.get("military_duration", ""))
+    else:
+        draw_field("Military Service", "No")
+
+    draw_title("🎨 Interests & Preferences")
+    draw_field("Hobbies & Interests", form.get("hobbies_interests", ""))
+    draw_field("Favorite Music", form.get("favorites_music", ""))
+    draw_field("Favorite Movies", form.get("favorites_movies", ""))
+    draw_field("Favorite Books", form.get("favorites_books", ""))
+
+    draw_title("🏆 Achievements & Daily Life")
+    draw_field("Achievements", form.get("achievements", ""))
+    draw_field("Daily Routine", form.get("daily_routine", ""))
+
+    draw_title("🙏 Beliefs & Relationships")
+    draw_field("Religion / Beliefs", form.get("religion_beliefs", ""))
+    draw_field("Important People", form.get("important_people", ""))
+
+    draw_title("🩺 Health & Accessibility")
+    draw_field("Health Conditions / Allergies", form.get("health_conditions", ""))
+    draw_field("Mobility Needs", form.get("mobility_needs", ""))
+    draw_field("Communication Style", form.get("communication", ""))
+
+    draw_title("💬 Personality")
+    draw_field("Likes & Dislikes", form.get("likes_dislikes", ""))
+
+    draw_title("📝 AI-Generated Life Summary")
+    draw_field("Notes", form.get("notes", ""))
+
+    c.showPage()
+    c.save()
+
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
     return pdf_bytes
