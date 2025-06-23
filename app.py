@@ -7,17 +7,15 @@ BACKEND_URL = "https://resident-mvp-backend-production.up.railway.app"
 st.set_page_config(page_title="Resident Interview Transcriber", layout="wide")
 st.title("🧓 Resident Interview Transcriber")
 
-st.markdown(
-    """
-    Upload a pre-recorded resident interview to:
-    - 🎙️ Transcribe it into readable text  
-    - 📄 Auto-generate a profile  
-    - ✍️ Edit the OPAL Life Story Form  
-    - 📥 Download the filled PDF
-    """
-)
+st.markdown("""
+Upload a pre-recorded resident interview to:
+- 🎙️ Transcribe it into readable text  
+- 📄 Auto-generate a profile  
+- ✍️ Edit the OPAL Life Story Form  
+- 📥 Download the filled PDF
+""")
 
-# === Step 1: Upload Audio and Transcribe ===
+# === Step 1: Upload & Transcribe ===
 uploaded_file = st.file_uploader("📁 Upload Audio (.mp3, .wav, .m4a)", type=["mp3", "wav", "m4a"])
 
 if st.button("🎙️ Transcribe Interview"):
@@ -32,7 +30,7 @@ if st.button("🎙️ Transcribe Interview"):
 
             if response.status_code == 200:
                 transcript = response.json().get("transcript", "")
-                st.session_state["transcript"] = transcript
+                st.session_state.transcript = transcript
                 st.success("✅ Transcription complete!")
                 st.text_area("📝 Transcript Preview:", transcript, height=200)
             else:
@@ -65,19 +63,22 @@ if "transcript" in st.session_state:
             else:
                 st.error("❌ Profile generation failed.")
 
-# === Step 3: Editable OPAL Form Preview ===
-if "opal_form" in st.session_state:
-    st.markdown("---")
-    st.header("✍️ Review & Edit OPAL Life Story Form")
+# === Step 3: Editable Form UI ===
+st.markdown("---")
+st.header("✍️ Review & Edit OPAL Life Story Form")
+render_opal_form()
 
-    render_opal_form()  # Draws editable UI form that updates st.session_state.opal_form live
-
-    st.markdown("### 📥 Download Finalized PDF")
-    if st.button("📩 Generate & Download OPAL Life Story PDF"):
-        pdf_bytes = generate_opal_pdf_from_form(st.session_state.opal_form)
-        st.download_button(
-            label="⬇️ Download OPAL Life Story PDF",
-            data=pdf_bytes,
-            file_name=f"{st.session_state.opal_form.get('name', 'Resident')}_OPAL_Life_Story.pdf",
-            mime="application/pdf"
-        )
+# === Step 4: Generate & Download PDF ===
+st.markdown("### 📥 Download Finalized PDF")
+if st.button("📩 Generate & Download OPAL Life Story PDF"):
+    with st.spinner("Generating your OPAL PDF..."):
+        pdf_bytes = generate_opal_pdf_from_form(st.session_state["opal_form"])
+        if pdf_bytes:
+            st.download_button(
+                label="⬇️ Download OPAL Life Story PDF",
+                data=pdf_bytes,
+                file_name=f"{st.session_state['opal_form'].get('name', 'Resident')}_OPAL_Life_Story.pdf",
+                mime="application/pdf"
+            )
+        else:
+            st.error("❌ Failed to generate the PDF. Template might be missing.")
