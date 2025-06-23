@@ -40,7 +40,7 @@ if st.button("Transcribe Interview"):
         st.info("Using uploaded file for transcription...")
         file_data = uploaded_file.read()
         filename = uploaded_file.name
-    elif ctx and ctx.state.playing and ctx.audio_processor and ctx.audio_processor.buffer:
+    elif ctx and ctx.audio_processor and len(ctx.audio_processor.buffer) > 0:
         st.info("Using recorded audio...")
         wav_path = os.path.join(tempfile.gettempdir(), "recorded_audio.wav")
         with open(wav_path, "wb") as f:
